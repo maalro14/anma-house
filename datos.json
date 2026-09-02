@@ -81,32 +81,7 @@
       "tipo": "Variable",
       "periodicidad": "mensual",
       "empresa": "Endesa",
-      "movimientos": [
-        {
-          "id": "mtjv6gv1uphl",
-          "fecha": "2026-09-02",
-          "importe": 50000,
-          "empresa": "Endesa",
-          "fileData": null,
-          "fileName": ""
-        },
-        {
-          "id": "mtjvg0hk3d70",
-          "fecha": "2026-09-02",
-          "importe": 5000,
-          "empresa": "Endesa",
-          "fileData": null,
-          "fileName": ""
-        },
-        {
-          "id": "mtjvhievc5st",
-          "fecha": "2026-10-09",
-          "importe": 100000,
-          "empresa": "Endesa",
-          "fileData": null,
-          "fileName": ""
-        }
-      ]
+      "movimientos": []
     },
     {
       "id": "mqck5nb9s4ga",
