@@ -1062,20 +1062,29 @@ function cloudHeaders(){
 function b64Encode(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64Decode(str){ return decodeURIComponent(escape(atob(str.replace(/\s/g, "")))); }
 
+async function cloudGetSha(){
+  const res = await fetch(cloudApiUrl() + "?ref=" + encodeURIComponent(cloud.branch) + "&t=" + Date.now(), { headers: cloudHeaders(), cache: "no-store" });
+  if(res.ok){ const j = await res.json(); return j.sha || null; }
+  return null; // no existe todavía o no accesible
+}
+async function cloudPut(body){
+  const sha = await cloudGetSha();
+  const b = Object.assign({}, body);
+  if(sha) b.sha = sha; else delete b.sha;
+  return fetch(cloudApiUrl(), {
+    method: "PUT",
+    headers: Object.assign({ "Content-Type": "application/json" }, cloudHeaders()),
+    body: JSON.stringify(b)
+  });
+}
 async function guardarNube(){
   if(!cloudReady()){ openCloudModal(); toast("Configura la nube primero"); return; }
   toast("Guardando en la nube…");
   try{
-    let sha = null;
-    const getRes = await fetch(cloudApiUrl() + "?ref=" + encodeURIComponent(cloud.branch), { headers: cloudHeaders() });
-    if(getRes.ok){ const j = await getRes.json(); sha = j.sha; }
     const body = { message: "Datos " + new Date().toISOString(), content: b64Encode(JSON.stringify(state, null, 2)), branch: cloud.branch };
-    if(sha) body.sha = sha;
-    const putRes = await fetch(cloudApiUrl(), {
-      method: "PUT",
-      headers: Object.assign({ "Content-Type": "application/json" }, cloudHeaders()),
-      body: JSON.stringify(body)
-    });
+    let putRes = await cloudPut(body);
+    if(putRes.status === 409) putRes = await cloudPut(body);   // reintento con referencia fresca
+    if(putRes.status === 409) putRes = await cloudPut(body);   // segundo reintento por si acaso
     if(!putRes.ok){
       let detail = "";
       try{ const ej = await putRes.json(); detail = ej.message || ""; }catch(_){}
@@ -1096,7 +1105,7 @@ async function bajarNube(){
   if(!cloudReady()){ openCloudModal(); toast("Configura la nube primero"); return; }
   toast("Bajando de la nube…");
   try{
-    const res = await fetch(cloudApiUrl() + "?ref=" + encodeURIComponent(cloud.branch), { headers: cloudHeaders() });
+    const res = await fetch(cloudApiUrl() + "?ref=" + encodeURIComponent(cloud.branch) + "&t=" + Date.now(), { headers: cloudHeaders(), cache: "no-store" });
     if(res.status === 404){ toast("Aún no hay datos en la nube"); return; }
     if(!res.ok){
       let detail = "";
