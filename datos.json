@@ -1,0 +1,341 @@
+{
+  "categories": [
+    {
+      "id": "mqck5nb8sj92",
+      "nombre": "Hipoteca",
+      "tipo": "Fijo",
+      "periodicidad": "mensual",
+      "empresa": "CaixaBank",
+      "movimientos": [
+        {
+          "id": "mtijztdy3o6u",
+          "fecha": "2026-06-02",
+          "importe": 1256.71,
+          "empresa": "Santander",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtik4n2tbeez",
+          "fecha": "2026-07-01",
+          "importe": 1256.71,
+          "empresa": "Santander",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtikccjlh8pi",
+          "fecha": "2026-08-01",
+          "importe": 1256.71,
+          "empresa": "Santander",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtikkfl4h9t0",
+          "fecha": "2026-09-01",
+          "importe": 1256.71,
+          "empresa": "Santander",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
+    },
+    {
+      "id": "mqck5nb81pte",
+      "nombre": "Préstamo BBVA",
+      "tipo": "Fijo",
+      "periodicidad": "mensual",
+      "empresa": "BBVA",
+      "movimientos": [
+        {
+          "id": "mtimo4sczeoo",
+          "fecha": "2026-08-31",
+          "importe": 286.01,
+          "empresa": "BBVA",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtimodoz1mao",
+          "fecha": "2026-07-31",
+          "importe": 286.01,
+          "empresa": "BBVA",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtimp4bkzeip",
+          "fecha": "2026-06-30",
+          "importe": 279.52,
+          "empresa": "BBVA",
+          "fileData": null,
+          "fileName": ""
+        }
+      ],
+      "estimado": 280
+    },
+    {
+      "id": "mqck5nb8f4pt",
+      "nombre": "Luz",
+      "tipo": "Variable",
+      "periodicidad": "mensual",
+      "empresa": "Endesa",
+      "movimientos": []
+    },
+    {
+      "id": "mqck5nb9s4ga",
+      "nombre": "Agua",
+      "tipo": "Variable",
+      "periodicidad": "trimestral",
+      "empresa": "Agbar",
+      "movimientos": [
+        {
+          "id": "mtikfex4ay6s",
+          "fecha": "2026-08-24",
+          "importe": 75.67,
+          "empresa": "Aigues Sant Pere de Ribes",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
+    },
+    {
+      "id": "mqck5nb9j463",
+      "nombre": "Alarma",
+      "tipo": "Variable",
+      "periodicidad": "mensual",
+      "empresa": "Securitas Direct",
+      "movimientos": [
+        {
+          "id": "mtijw073hiep",
+          "fecha": "2026-05-06",
+          "importe": 46.98,
+          "empresa": "Securitas Direct",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtik14hyij6e",
+          "fecha": "2026-06-05",
+          "importe": 29.9,
+          "empresa": "Securitas Direct",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtik5yzdy61v",
+          "fecha": "2026-07-06",
+          "importe": 51.3,
+          "empresa": "Securitas Direct",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtike5fd1eol",
+          "fecha": "2026-08-13",
+          "importe": 51.3,
+          "empresa": "Securitas Direct",
+          "fileData": null,
+          "fileName": ""
+        }
+      ],
+      "mixto": {
+        "cuotasIniciales": 2,
+        "importeInicial": 46.98,
+        "importeResto": null
+      }
+    },
+    {
+      "id": "mqck5nb9rz17",
+      "nombre": "Internet",
+      "tipo": "Variable",
+      "periodicidad": "mensual",
+      "empresa": "Movistar",
+      "movimientos": [
+        {
+          "id": "mtijx28a5a9o",
+          "fecha": "2026-06-25",
+          "importe": 10.79,
+          "empresa": "Movistar",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtik841hckt1",
+          "fecha": "2026-07-27",
+          "importe": 24.9,
+          "empresa": "Movistar",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtikg5nwyolr",
+          "fecha": "2026-08-25",
+          "importe": 24.9,
+          "empresa": "Movistar",
+          "fileData": null,
+          "fileName": ""
+        }
+      ],
+      "estimado": null
+    },
+    {
+      "id": "mqck5nb9q0ys",
+      "nombre": "Comunidad",
+      "tipo": "Fijo",
+      "periodicidad": "mensual",
+      "empresa": "Administrador finca",
+      "movimientos": [
+        {
+          "id": "mtikotnng8ci",
+          "fecha": "2026-09-01",
+          "importe": 60.94,
+          "empresa": "Administrador finca",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtikpbmo9gyj",
+          "fecha": "2026-08-03",
+          "importe": 60.94,
+          "empresa": "Administrador finca",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtikqyh332gk",
+          "fecha": "2026-07-14",
+          "importe": 254,
+          "empresa": "Administrador finca",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
+    },
+    {
+      "id": "mqck5nb9ap0d",
+      "nombre": "Seguro Hogar",
+      "tipo": "Variable",
+      "periodicidad": "mensual",
+      "empresa": "Mapfre",
+      "movimientos": [
+        {
+          "id": "mtijssr4yba0",
+          "fecha": "2026-04-28",
+          "importe": 51.52,
+          "empresa": "Planeta Seguros",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtijy5wimqs4",
+          "fecha": "2026-05-31",
+          "importe": 48.94,
+          "empresa": "Planeta Seguros",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtik42zq66rt",
+          "fecha": "2026-06-30",
+          "importe": 48.94,
+          "empresa": "Planeta Seguros",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtik9hids4iw",
+          "fecha": "2026-07-31",
+          "importe": 48.94,
+          "empresa": "Planeta Seguros",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
+    },
+    {
+      "id": "mqck5nb9qvsa",
+      "nombre": "Seguros Vida",
+      "tipo": "Fijo",
+      "periodicidad": "anual",
+      "empresa": "Allianz",
+      "movimientos": [
+        {
+          "id": "mtijrkr79y7h",
+          "fecha": "2026-04-14",
+          "importe": 549.59,
+          "empresa": "Santander Generales Seguro",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
+    },
+    {
+      "id": "mqck5nb9gk2y",
+      "nombre": "IBI",
+      "tipo": "Fijo",
+      "periodicidad": "anual",
+      "empresa": "Ajuntament",
+      "movimientos": []
+    },
+    {
+      "id": "mqck5nb9nt0q",
+      "nombre": "Basuras",
+      "tipo": "Fijo",
+      "periodicidad": "semestral",
+      "empresa": "Ajuntament",
+      "movimientos": []
+    },
+    {
+      "id": "mr1ugysp3bp9",
+      "nombre": "Prestamo Santander",
+      "tipo": "Fijo",
+      "periodicidad": "mensual",
+      "empresa": "Santander",
+      "movimientos": [
+        {
+          "id": "mtikcydhu6fz",
+          "fecha": "2026-08-01",
+          "importe": 443.98,
+          "empresa": "Santander",
+          "fileData": null,
+          "fileName": ""
+        },
+        {
+          "id": "mtikkp3ctwx5",
+          "fecha": "2026-09-01",
+          "importe": 443.98,
+          "empresa": "Santander",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
+    }
+  ],
+  "amortization": {
+    "hipoteca": {
+      "capital": 347000,
+      "cuota": 1256.71,
+      "tin": 2.1,
+      "meses": 360,
+      "pagados": 0,
+      "fechaInicio": "2026-06-01"
+    },
+    "bbva": {
+      "capital": 14000,
+      "cuota": 279.52,
+      "tin": 5.5,
+      "meses": 120,
+      "pagados": 0,
+      "fechaInicio": "2026-06-01"
+    },
+    "santander": {
+      "capital": 30642.51,
+      "cuota": 439.74,
+      "tin": 5.75,
+      "meses": 85,
+      "pagados": 0
+    }
+  }
+}
