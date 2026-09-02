@@ -1049,8 +1049,13 @@ const cloud = {
   path: "datos.json",
   branch: "main"
 };
-function cloudReady(){ return cloud.owner && cloud.repo && cloud.token; }
-function cloudApiUrl(){ return "https://api.github.com/repos/" + cloud.owner + "/" + cloud.repo + "/contents/" + cloud.path; }
+function cloudParts(){
+  let owner = cloud.owner, repo = cloud.repo;
+  if(repo.indexOf("/") !== -1){ const p = repo.split("/"); if(p[0]) owner = p[0]; repo = p[1] || ""; }
+  return { owner: owner.trim(), repo: repo.trim() };
+}
+function cloudReady(){ const p = cloudParts(); return p.owner && p.repo && cloud.token; }
+function cloudApiUrl(){ const p = cloudParts(); return "https://api.github.com/repos/" + p.owner + "/" + p.repo + "/contents/" + cloud.path; }
 function cloudHeaders(){
   return { "Authorization": "Bearer " + cloud.token, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
 }
@@ -1079,7 +1084,12 @@ async function guardarNube(){
     dirty = false; updateSaveStatus();
     toast("Guardado en la nube ✓");
   }catch(e){
-    toast("Error nube: " + (e && e.message ? e.message : "desconocido"), 8000);
+    const m = (e && e.message) || "";
+    let hint = m;
+    if(m.indexOf("404") === 0) hint = "404: revisa Usuario (maalro14) y Repositorio (anma-house) en ⚙, y que el token tenga acceso a ese repo.";
+    else if(m.indexOf("403") === 0) hint = "403: al token le falta permiso Contents: Read and write.";
+    else if(m.indexOf("401") === 0) hint = "401: token inválido o caducado.";
+    toast("Error nube: " + hint, 9000);
   }
 }
 async function bajarNube(){
@@ -1098,7 +1108,12 @@ async function bajarNube(){
     dirty = false; updateSaveStatus();
     toast("Actualizado desde la nube ✓");
   }catch(e){
-    toast("Error nube: " + (e && e.message ? e.message : "desconocido"), 8000);
+    const m = (e && e.message) || "";
+    let hint = m;
+    if(m.indexOf("404") === 0) hint = "404: revisa Usuario (maalro14) y Repositorio (anma-house) en ⚙, y que el token tenga acceso a ese repo.";
+    else if(m.indexOf("403") === 0) hint = "403: al token le falta permiso Contents: Read and write.";
+    else if(m.indexOf("401") === 0) hint = "401: token inválido o caducado.";
+    toast("Error nube: " + hint, 9000);
   }
 }
 function openCloudModal(){
