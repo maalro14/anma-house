@@ -1071,11 +1071,15 @@ async function guardarNube(){
       headers: Object.assign({ "Content-Type": "application/json" }, cloudHeaders()),
       body: JSON.stringify(body)
     });
-    if(!putRes.ok) throw new Error("PUT " + putRes.status);
+    if(!putRes.ok){
+      let detail = "";
+      try{ const ej = await putRes.json(); detail = ej.message || ""; }catch(_){}
+      throw new Error(putRes.status + " " + detail);
+    }
     dirty = false; updateSaveStatus();
     toast("Guardado en la nube ✓");
   }catch(e){
-    toast("Error al guardar en la nube");
+    toast("Error nube: " + (e && e.message ? e.message : "desconocido"), 8000);
   }
 }
 async function bajarNube(){
@@ -1084,13 +1088,17 @@ async function bajarNube(){
   try{
     const res = await fetch(cloudApiUrl() + "?ref=" + encodeURIComponent(cloud.branch), { headers: cloudHeaders() });
     if(res.status === 404){ toast("Aún no hay datos en la nube"); return; }
-    if(!res.ok) throw new Error("GET " + res.status);
+    if(!res.ok){
+      let detail = "";
+      try{ const ej = await res.json(); detail = ej.message || ""; }catch(_){}
+      throw new Error(res.status + " " + detail);
+    }
     const j = await res.json();
     aplicarDatos(JSON.parse(b64Decode(j.content || "")));
     dirty = false; updateSaveStatus();
     toast("Actualizado desde la nube ✓");
   }catch(e){
-    toast("Error al bajar de la nube");
+    toast("Error nube: " + (e && e.message ? e.message : "desconocido"), 8000);
   }
 }
 function openCloudModal(){
@@ -1111,12 +1119,12 @@ function saveCloudSettings(){
 }
 
 let toastTimer = null;
-function toast(msg){
+function toast(msg, ms){
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  toastTimer = setTimeout(() => t.classList.remove("show"), ms || 2200);
 }
 
 /* ====== Nuevo gasto (modal) ====== */
