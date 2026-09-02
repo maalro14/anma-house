@@ -81,7 +81,16 @@
       "tipo": "Variable",
       "periodicidad": "mensual",
       "empresa": "Endesa",
-      "movimientos": []
+      "movimientos": [
+        {
+          "id": "mtjuagyn69la",
+          "fecha": "2026-09-02",
+          "importe": 45454,
+          "empresa": "Endesa",
+          "fileData": null,
+          "fileName": ""
+        }
+      ]
     },
     {
       "id": "mqck5nb9s4ga",
