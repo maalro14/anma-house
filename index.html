@@ -47,6 +47,9 @@
   .save-status{font-size:11.5px;font-weight:600;white-space:nowrap;margin-right:2px}
   .save-status.dirty{color:var(--variable)}
   .save-status.clean{color:var(--accent)}
+  .conflict-bar{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:#fbeee0;border:1px solid #e6c69a;color:#7a4b12;border-radius:12px;padding:10px 14px;margin:14px 0 0}
+  .conflict-bar.show{display:flex}
+  .conflict-bar span{font-size:13.5px;font-weight:600;flex:1;min-width:180px}
   .btn{
     font:inherit;font-size:13px;font-weight:550;cursor:pointer;
     background:var(--surface);color:var(--ink);border:1px solid var(--line);
@@ -281,6 +284,12 @@
     </div>
   </header>
 
+  <div class="conflict-bar" id="conflictBar">
+    <span>⚠ La nube tiene cambios más nuevos de otro dispositivo.</span>
+    <button class="btn" id="cfBajar">⟳ Bajar (perder lo mío)</button>
+    <button class="btn btn-accent" id="cfSobre">☁ Sobrescribir</button>
+  </div>
+
   <section class="hero" aria-label="Resumen del coste mensual">
     <div class="hero-label">Coste mensual de la casa</div>
     <div class="hero-total"><span id="totalMes" class="num">0</span><span class="cur">€/mes</span></div>
@@ -397,6 +406,7 @@ function persist(){
   try{ localStorage.setItem("anma_gastos_blanco", JSON.stringify(state)); }catch(e){/* no-op */}
   dirty = true;
   updateSaveStatus();
+  if(typeof scheduleCloudSave === "function") scheduleCloudSave();
 }
 /* Sistema de guardado en fichero */
 let fileHandle = null;                                             // fichero enlazado (Chrome/Edge)
@@ -1077,22 +1087,88 @@ async function cloudPut(body){
     body: JSON.stringify(b)
   });
 }
+let cloudKnownSha = null;     // versión de la nube en la que se basa lo que tengo
+let conflictPending = false;  // hay un conflicto sin resolver (pausa el autoguardado)
+
+async function cloudSaveCore(force){
+  let currentSha = await cloudGetSha();
+  // Conflicto: la nube cambió respecto a lo que teníamos (otro dispositivo guardó)
+  if(!force && cloudKnownSha && currentSha && currentSha !== cloudKnownSha){
+    const err = new Error("conflict"); err.conflict = true; throw err;
+  }
+  const body = { message: "Datos " + new Date().toISOString(), content: b64Encode(JSON.stringify(state, null, 2)), branch: cloud.branch };
+  if(currentSha) body.sha = currentSha;
+  let putRes = await fetch(cloudApiUrl(), { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, cloudHeaders()), body: JSON.stringify(body) });
+  if(putRes.status === 409){
+    // carrera: alguien escribió entre el GET y el PUT
+    currentSha = await cloudGetSha();
+    if(!force && cloudKnownSha && currentSha && currentSha !== cloudKnownSha){ const err = new Error("conflict"); err.conflict = true; throw err; }
+    body.sha = currentSha || undefined;
+    putRes = await fetch(cloudApiUrl(), { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, cloudHeaders()), body: JSON.stringify(body) });
+  }
+  if(!putRes.ok){
+    let detail = "";
+    try{ const ej = await putRes.json(); detail = ej.message || ""; }catch(_){}
+    throw new Error(putRes.status + " " + detail);
+  }
+  try{ const resp = await putRes.json(); if(resp && resp.content && resp.content.sha) cloudKnownSha = resp.content.sha; }catch(_){}
+}
+function showConflict(){
+  conflictPending = true;
+  const bar = document.getElementById("conflictBar");
+  if(bar) bar.classList.add("show");
+  const el = document.getElementById("saveStatus");
+  if(el){ el.textContent = "⚠ conflicto"; el.className = "save-status dirty"; }
+}
+function hideConflict(){
+  conflictPending = false;
+  const bar = document.getElementById("conflictBar");
+  if(bar) bar.classList.remove("show");
+}
+async function forzarSubir(){
+  try{
+    await cloudSaveCore(true);
+    hideConflict();
+    dirty = false; updateSaveStatus();
+    toast("Sobrescrito en la nube ✓");
+  }catch(e){ toast("Error al sobrescribir", 6000); }
+}
+/* Autoguardado en la nube: cada cambio se sube solo tras un pequeño retardo */
+let cloudSaveTimer = null, cloudSaving = false, cloudPending = false;
+function scheduleCloudSave(){
+  if(!cloudReady() || conflictPending) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(runCloudAutosave, 1500);
+}
+async function runCloudAutosave(){
+  if(!cloudReady() || conflictPending) return;
+  if(cloudSaving){ cloudPending = true; return; }
+  cloudSaving = true;
+  const el = document.getElementById("saveStatus");
+  if(el){ el.textContent = "Guardando…"; el.className = "save-status dirty"; }
+  try{
+    await cloudSaveCore(false);
+    dirty = false; updateSaveStatus();
+  }catch(e){
+    if(e && e.conflict){ showConflict(); }
+    else{
+      if(el){ el.textContent = "⚠ sin subir"; el.className = "save-status dirty"; }
+      toast("No se pudo autoguardar en la nube", 5000);
+    }
+  }finally{
+    cloudSaving = false;
+    if(cloudPending && !conflictPending){ cloudPending = false; scheduleCloudSave(); }
+  }
+}
 async function guardarNube(){
   if(!cloudReady()){ openCloudModal(); toast("Configura la nube primero"); return; }
   toast("Guardando en la nube…");
   try{
-    const body = { message: "Datos " + new Date().toISOString(), content: b64Encode(JSON.stringify(state, null, 2)), branch: cloud.branch };
-    let putRes = await cloudPut(body);
-    if(putRes.status === 409) putRes = await cloudPut(body);   // reintento con referencia fresca
-    if(putRes.status === 409) putRes = await cloudPut(body);   // segundo reintento por si acaso
-    if(!putRes.ok){
-      let detail = "";
-      try{ const ej = await putRes.json(); detail = ej.message || ""; }catch(_){}
-      throw new Error(putRes.status + " " + detail);
-    }
+    await cloudSaveCore(false);
     dirty = false; updateSaveStatus();
     toast("Guardado en la nube ✓");
   }catch(e){
+    if(e && e.conflict){ showConflict(); toast("La nube tiene cambios más nuevos", 6000); return; }
     const m = (e && e.message) || "";
     let hint = m;
     if(m.indexOf("404") === 0) hint = "404: revisa Usuario (maalro14) y Repositorio (anma-house) en ⚙, y que el token tenga acceso a ese repo.";
@@ -1114,6 +1190,8 @@ async function bajarNube(){
     }
     const j = await res.json();
     aplicarDatos(JSON.parse(b64Decode(j.content || "")));
+    cloudKnownSha = j.sha || null;
+    hideConflict();
     dirty = false; updateSaveStatus();
     toast("Actualizado desde la nube ✓");
   }catch(e){
@@ -1201,6 +1279,8 @@ document.getElementById("mTipo").addEventListener("change", () => {
 });
 document.getElementById("btnCloudPut").addEventListener("click", guardarNube);
 document.getElementById("btnCloudGet").addEventListener("click", bajarNube);
+document.getElementById("cfBajar").addEventListener("click", bajarNube);
+document.getElementById("cfSobre").addEventListener("click", forzarSubir);
 document.getElementById("btnCloudCfg").addEventListener("click", openCloudModal);
 document.getElementById("cCancel").addEventListener("click", closeCloudModal);
 document.getElementById("cSave").addEventListener("click", saveCloudSettings);
@@ -1225,6 +1305,9 @@ window.addEventListener("beforeunload", e => {
 
 render();
 updateSaveStatus();
+
+/* Al abrir, si la nube está configurada, traer la última versión automáticamente */
+if(cloudReady()) bajarNube();
 </script>
 </body>
 </html>
