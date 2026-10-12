@@ -242,6 +242,14 @@
           "empresa": "Administrador finca",
           "fileData": null,
           "fileName": ""
+        },
+        {
+          "id": "mv5la541os1w",
+          "fecha": "2026-10-01",
+          "importe": 60.94,
+          "empresa": "Administrador finca",
+          "fileData": null,
+          "fileName": ""
         }
       ]
     },
