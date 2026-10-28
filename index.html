@@ -1448,6 +1448,7 @@ const EXT_STOP = new Set(["espana","seguros","seguro","recibo","banco","finca","
 const EXT_PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
 let extRows = [];
 let extPdfPromise = null;
+let extAjenos = 0;     // gastos del extracto que no encajan en ninguna categoría (no se muestran)
 
 function extNorm(s){
   return String(s == null ? "" : s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -1592,6 +1593,8 @@ function extBuild(movs){
   });
   extRows = Array.from(groups.values()).sort((a, b) => b.fecha.localeCompare(a.fecha));
   extRows.forEach(r => { r.catId = extGuessCat(r); r.on = true; });
+  extAjenos = extRows.filter(r => !r.catId).length;
+  extRows = extRows.filter(r => r.catId);   // solo lo que coincide con nuestras categorías
   extResolveDups();
   extRows.forEach(r => { if(r.dup) r.on = false; });
   return movs.length - gastos.length;
@@ -1618,7 +1621,7 @@ function extRender(){
     '</div>';
   }).join("");
   list.querySelectorAll(".ext-cat").forEach(s => { s.value = extRows[Number(s.dataset.i)].catId || ""; });
-  summary.textContent = extRows.length + " gastos · " + nNew + " nuevos · " + nDup + " ya registrados · " + nNone + " sin categoría";
+  summary.textContent = extRows.length + " gastos de la casa · " + nNew + " nuevos · " + nDup + " ya registrados" + (nNone ? " · " + nNone + " sin categoría" : "") + (extAjenos ? " · " + extAjenos + " otros movimientos ignorados" : "");
 }
 
 function extShow(movs, origen){
@@ -1626,6 +1629,7 @@ function extShow(movs, origen){
   if(!movs.length){ extRows = []; extRender(); note.textContent = "No se encontraron movimientos en " + origen; return; }
   const ingresos = extBuild(movs);
   note.textContent = origen + " · " + movs.length + " movimientos" + (ingresos ? " (" + ingresos + " ingresos omitidos)" : "");
+  if(!extRows.length) note.textContent += " · ninguno coincide con tus categorías";
   extRender();
 }
 async function extLoadFile(file){
