@@ -260,6 +260,8 @@
   .field-row .field{flex:1}
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
 
+  /* Etiqueta de cargo en promoción */
+  .promo-tag{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:600;color:#3d6f9e;background:#edf3fa;border-radius:20px;padding:1px 7px;vertical-align:1px}
   /* Aviso de cargo que falta */
   .cat.cat-pend{background:#fdf4f3;border-color:#f2d6d2}
   .pend-note{color:#c0574a;font-weight:550}
@@ -594,6 +596,7 @@ function renderCats(cats){
       ? '<div class="flag">Sin importe</div>'
       : '<div class="m num">' + esc(fmt(m)) + '</div><div class="per">al mes</div>';
 
+    const promos = promoIds(c);
     const movHTML = movs.length
       ? movs.map(mv => {
           if(!mv.id) mv.id = uid();
@@ -610,7 +613,7 @@ function renderCats(cats){
             ? '<a class="mov-file" href="' + mv.fileData + '" target="_blank" rel="noopener">Ver factura</a>'
             : (mv.fileName ? '<span class="mov-file" style="color:var(--muted)">' + esc(mv.fileName) + '</span>' : '');
           return '<div class="mov"><div class="mov-l">' + esc(mv.empresa || catEmpresa(c) || "") +
-                 '<div class="d">' + fmtDate(mv.fecha) + '</div></div>' +
+                 '<div class="d">' + fmtDate(mv.fecha) + (promos.has(mv.id) ? '<span class="promo-tag">Promoción</span>' : '') + '</div></div>' +
                  '<div class="mov-r"><span class="mov-imp num">' + esc(fmt(mv.importe)) + '</span>' + file +
                    '<button class="mov-act mov-edit" data-id="' + esc(mv.id) + '" title="Editar">✏️</button>' +
                    '<button class="mov-act mov-del" data-id="' + esc(mv.id) + '" title="Borrar">🗑️</button>' +
@@ -1038,6 +1041,24 @@ function cargoPendiente(c){
   const esperado = addMonthsISO(movs[0].fecha, PER_MESES[c.periodicidad]);
   const margen = new Date(Date.parse(esperado) + 5 * 86400000).toISOString().slice(0, 10);
   return margen < hoyISO() ? esperado : null;
+}
+
+/* ====== Cargos en promoción ======
+   En gastos fijos, los primeros cargos un 5 % o más baratos que la tarifa actual,
+   antes de que empiece a cobrarse esa tarifa, se marcan como promoción. */
+function promoIds(c){
+  const ids = new Set();
+  if(c.tipo !== "Fijo") return ids;
+  const movs = (c.movimientos || []).filter(m => m && m.fecha && m.importe != null)
+    .sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)));
+  if(movs.length < 2) return ids;
+  const actual = Number(movs[movs.length - 1].importe) || 0;
+  for(const m of movs){
+    const v = Number(m.importe) || 0;
+    if(Math.abs(v - actual) < 0.01) break;           // empieza la tarifa normal
+    if(v < actual * 0.95) ids.add(m.id);
+  }
+  return ids;
 }
 
 /* ====== Aviso de subida de recibo ====== */
