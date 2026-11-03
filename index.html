@@ -437,7 +437,7 @@
 "use strict";
 
 /* ====== Datos precargados (backup ANMA HOUSE) ====== */
-const INITIAL_DATA = {"categories":[{"id":"mqck5nb8sj92","nombre":"Hipoteca","tipo":"Fijo","periodicidad":"mensual","empresa":"CaixaBank","movimientos":[]},{"id":"mqck5nb81pte","nombre":"Préstamo BBVA","tipo":"Fijo","periodicidad":"mensual","empresa":"BBVA","movimientos":[]},{"id":"mqck5nb8f4pt","nombre":"Luz","tipo":"Variable","periodicidad":"mensual","empresa":"Endesa","movimientos":[]},{"id":"mqck5nb9s4ga","nombre":"Agua","tipo":"Variable","periodicidad":"mensual","empresa":"Agbar","movimientos":[]},{"id":"mqck5nb9j463","nombre":"Alarma","tipo":"Variable","periodicidad":"mensual","empresa":"Securitas Direct","movimientos":[]},{"id":"mqck5nb9rz17","nombre":"Internet","tipo":"Fijo","periodicidad":"mensual","empresa":"Movistar","movimientos":[]},{"id":"mqck5nb9q0ys","nombre":"Comunidad","tipo":"Fijo","periodicidad":"mensual","empresa":"Administrador finca","movimientos":[]},{"id":"mqck5nb9ap0d","nombre":"Seguro Hogar","tipo":"Fijo","periodicidad":"mensual","empresa":"Mapfre","movimientos":[]},{"id":"mqck5nb9qvsa","nombre":"Seguros Vida","tipo":"Fijo","periodicidad":"anual","empresa":"Allianz","movimientos":[]},{"id":"mqck5nb9gk2y","nombre":"IBI","tipo":"Fijo","periodicidad":"anual","empresa":"Ajuntament","movimientos":[]},{"id":"mqck5nb9nt0q","nombre":"Basuras","tipo":"Fijo","periodicidad":"semestral","empresa":"Ajuntament","movimientos":[]},{"id":"mr1ugysp3bp9","nombre":"Prestamo Santander","tipo":"Fijo","periodicidad":"mensual","empresa":"Santander","movimientos":[]}],"amortization":{"hipoteca":{"capital":347000,"cuota":1256.71,"tin":2.1,"meses":360,"pagados":0,"fechaInicio":"2026-06-01"},"bbva":{"capital":14000,"cuota":286.01,"tin":8.35,"meses":60,"pagados":0,"fechaInicio":"2026-06-01"},"santander":{"capital":30642.51,"cuota":443.98,"tin":5.75,"meses":84,"pagados":0}}};
+const INITIAL_DATA = {"categories":[{"id":"mqck5nb8sj92","nombre":"Hipoteca","tipo":"Fijo","periodicidad":"mensual","empresa":"CaixaBank","movimientos":[]},{"id":"mqck5nb81pte","nombre":"Préstamo BBVA","tipo":"Fijo","periodicidad":"mensual","empresa":"BBVA","movimientos":[]},{"id":"mqck5nb8f4pt","nombre":"Luz","tipo":"Variable","periodicidad":"mensual","empresa":"Endesa","movimientos":[]},{"id":"mqck5nb9s4ga","nombre":"Agua","tipo":"Variable","periodicidad":"mensual","empresa":"Agbar","movimientos":[]},{"id":"mqck5nb9j463","nombre":"Alarma","tipo":"Variable","periodicidad":"mensual","empresa":"Securitas Direct","movimientos":[]},{"id":"mqck5nb9rz17","nombre":"Internet","tipo":"Fijo","periodicidad":"mensual","empresa":"Movistar","movimientos":[]},{"id":"mqck5nb9q0ys","nombre":"Comunidad","tipo":"Fijo","periodicidad":"mensual","empresa":"Administrador finca","movimientos":[]},{"id":"mqck5nb9ap0d","nombre":"Seguro Hogar","tipo":"Fijo","periodicidad":"mensual","empresa":"Mapfre","movimientos":[]},{"id":"mqck5nb9qvsa","nombre":"Seguros Vida","tipo":"Fijo","periodicidad":"anual","empresa":"Allianz","movimientos":[]},{"id":"mqck5nb9gk2y","nombre":"IBI","tipo":"Fijo","periodicidad":"anual","empresa":"Ajuntament","movimientos":[]},{"id":"mqck5nb9nt0q","nombre":"Basuras","tipo":"Fijo","periodicidad":"semestral","empresa":"Ajuntament","movimientos":[]},{"id":"mr1ugysp3bp9","nombre":"Prestamo Santander","tipo":"Fijo","periodicidad":"mensual","empresa":"Santander","movimientos":[]}],"amortization":{"hipoteca":{"capital":347000,"cuota":1256.71,"tin":2.1,"meses":360,"pagados":0,"fechaInicio":"2026-06-01"},"bbva":{"capital":14000,"cuota":286.01,"tin":8.35,"meses":60,"tramos":[{"hasta":2,"tin":7.35,"cuota":279.53}],"pagados":0,"fechaInicio":"2026-06-01"},"santander":{"capital":30642.51,"cuota":443.98,"tin":5.75,"meses":84,"pagados":0}}};
 
 /* ====== Estado ====== */
 let state = loadState();
@@ -468,6 +468,7 @@ function fixLoanTerms(st){
     if(Number(b.tin) === 5.5){ b.tin = 8.35; changed = true; }
     if(Number(b.meses) === 120){ b.meses = 60; changed = true; }
     if(Number(b.cuota) === 279.52){ b.cuota = 286.01; changed = true; }
+    if(!Array.isArray(b.tramos)){ b.tramos = [{ hasta:2, tin:7.35, cuota:279.53 }]; changed = true; }
   }
   if(s){
     if(Number(s.meses) === 85){ s.meses = 84; changed = true; }
@@ -939,6 +940,12 @@ function loanCategoryFor(key){
     return false;
   });
 }
+/* Condiciones de la cuota nº i: un tramo inicial (si lo hay) o las condiciones generales */
+function loanTermsAt(l, i, rBase, cuotaBase){
+  const tr = Array.isArray(l.tramos) ? l.tramos.find(t => i <= (Number(t.hasta) || 0)) : null;
+  if(!tr) return { r: rBase, cuota: cuotaBase };
+  return { r: (Number(tr.tin) || 0) / 100 / 12, cuota: Number(tr.cuota) || cuotaBase };
+}
 function amortSchedule(l){
   const capital = Number(l.capital) || 0;
   const meses = Number(l.meses) || 0;
@@ -948,8 +955,9 @@ function amortSchedule(l){
   const rows = [];
   let pend = capital;
   for(let i = 1; i <= meses; i++){
-    const interes = pend * r;
-    let amort = cuota - interes;
+    const t = loanTermsAt(l, i, r, cuota);
+    const interes = pend * t.r;
+    let amort = t.cuota - interes;
     if(i === meses) amort = pend;                 // la última cuota liquida el resto
     const rowCuota = interes + amort;
     pend = pend - amort;
@@ -982,8 +990,9 @@ function capitalPendiente(l, pagados){
   if((!cuota || cuota <= 0) && r > 0 && meses > 0) cuota = capital * r / (1 - Math.pow(1 + r, -meses));
   let pend = capital;
   for(let i = 1; i <= pagados && i <= meses; i++){
-    const interes = pend * r;
-    let amort = cuota - interes;
+    const t = loanTermsAt(l, i, r, cuota);
+    const interes = pend * t.r;
+    let amort = t.cuota - interes;
     if(i === meses) amort = pend;
     pend = pend - amort;
     if(pend < 0.005) pend = 0;
