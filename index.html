@@ -469,6 +469,7 @@ function fixLoanTerms(st){
     if(Number(b.meses) === 120){ b.meses = 60; changed = true; }
     if(Number(b.cuota) === 279.52){ b.cuota = 286.01; changed = true; }
     if(!Array.isArray(b.tramos)){ b.tramos = [{ hasta:2, tin:7.35, cuota:279.53 }]; changed = true; }
+    if(b.pagadasPrevias == null){ b.pagadasPrevias = 1; changed = true; }   // 1 cuota pagada sin cargo registrado
   }
   if(s){
     if(Number(s.meses) === 85){ s.meses = 84; changed = true; }
