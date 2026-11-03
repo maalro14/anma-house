@@ -218,6 +218,7 @@
   .md-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;border-bottom:1px solid var(--line);padding-bottom:8px}
   .md-head b{font-size:15px;font-weight:650}
   .md-hint{font-size:13px;color:var(--muted);text-align:center;padding:10px 0 2px}
+  .md-sort{margin-left:8px;border:1px solid var(--line);background:none;color:var(--muted);font:inherit;font-size:12px;border-radius:6px;padding:1px 7px;cursor:pointer}
   /* Mes desplegable */
   .month-head{cursor:pointer}
   .month-head .mcaret{color:var(--muted);font-size:11px;margin-right:8px;transition:transform .18s;display:inline-block}
@@ -479,6 +480,8 @@ const openMonths = new Set();
 const editingMov = new Set();
 /* Mes cuyo desglose está desplegado en el gráfico (null = ninguno) */
 let selectedMonth = null;
+/* Orden del desglose mensual por importe (true = de mayor a menor) */
+let monthSortDesc = true;
 /* Préstamos con la tabla de amortización desplegada */
 const openLoans = new Set();
 
@@ -891,14 +894,19 @@ function renderMonths(){
   // Desglose del mes seleccionado (aparece al pulsar una barra)
   if(hasSel){
     const d = map[selectedMonth];
-    d.items.sort((a,b) => String(b.fecha).localeCompare(String(a.fecha)));
+    d.items.sort((a,b) => monthSortDesc ? (b.importe - a.importe) : (a.importe - b.importe));
     const lines = d.items.map(it =>
       '<div class="month-line"><span>' + esc(it.nombre) + (it.empresa ? ' · ' + esc(it.empresa) : '') + '</span>' +
       '<span class="num">' + esc(fmt(it.importe)) + '</span></div>').join("");
     wrap.innerHTML =
-      '<div class="month-detail"><div class="md-head"><b>' + esc(monthLabel(selectedMonth)) + '</b>' +
+      '<div class="month-detail"><div class="md-head"><span><b>' + esc(monthLabel(selectedMonth)) + '</b>' +
+        '<button type="button" class="md-sort" title="Ordenar por importe">' + (monthSortDesc ? '€ ↓' : '€ ↑') + '</button></span>' +
         '<span class="month-total num">' + esc(fmt(d.total)) + '</span></div>' +
         lines + '</div>';
+    wrap.querySelector(".md-sort").addEventListener("click", () => {
+      monthSortDesc = !monthSortDesc;
+      renderMonths();
+    });
   } else {
     wrap.innerHTML = '<div class="md-hint">Toca una barra para ver el desglose del mes.</div>';
   }
