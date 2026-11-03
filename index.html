@@ -437,7 +437,7 @@
 "use strict";
 
 /* ====== Datos precargados (backup ANMA HOUSE) ====== */
-const INITIAL_DATA = {"categories":[{"id":"mqck5nb8sj92","nombre":"Hipoteca","tipo":"Fijo","periodicidad":"mensual","empresa":"CaixaBank","movimientos":[]},{"id":"mqck5nb81pte","nombre":"Préstamo BBVA","tipo":"Fijo","periodicidad":"mensual","empresa":"BBVA","movimientos":[]},{"id":"mqck5nb8f4pt","nombre":"Luz","tipo":"Variable","periodicidad":"mensual","empresa":"Endesa","movimientos":[]},{"id":"mqck5nb9s4ga","nombre":"Agua","tipo":"Variable","periodicidad":"mensual","empresa":"Agbar","movimientos":[]},{"id":"mqck5nb9j463","nombre":"Alarma","tipo":"Variable","periodicidad":"mensual","empresa":"Securitas Direct","movimientos":[]},{"id":"mqck5nb9rz17","nombre":"Internet","tipo":"Fijo","periodicidad":"mensual","empresa":"Movistar","movimientos":[]},{"id":"mqck5nb9q0ys","nombre":"Comunidad","tipo":"Fijo","periodicidad":"mensual","empresa":"Administrador finca","movimientos":[]},{"id":"mqck5nb9ap0d","nombre":"Seguro Hogar","tipo":"Fijo","periodicidad":"mensual","empresa":"Mapfre","movimientos":[]},{"id":"mqck5nb9qvsa","nombre":"Seguros Vida","tipo":"Fijo","periodicidad":"anual","empresa":"Allianz","movimientos":[]},{"id":"mqck5nb9gk2y","nombre":"IBI","tipo":"Fijo","periodicidad":"anual","empresa":"Ajuntament","movimientos":[]},{"id":"mqck5nb9nt0q","nombre":"Basuras","tipo":"Fijo","periodicidad":"semestral","empresa":"Ajuntament","movimientos":[]},{"id":"mr1ugysp3bp9","nombre":"Prestamo Santander","tipo":"Fijo","periodicidad":"mensual","empresa":"Santander","movimientos":[]}],"amortization":{"hipoteca":{"capital":347000,"cuota":1256.71,"tin":2.1,"meses":360,"pagados":0,"fechaInicio":"2026-06-01"},"bbva":{"capital":14000,"cuota":279.52,"tin":5.5,"meses":120,"pagados":0,"fechaInicio":"2026-06-01"},"santander":{"capital":30642.51,"cuota":439.74,"tin":5.75,"meses":85,"pagados":0}}};
+const INITIAL_DATA = {"categories":[{"id":"mqck5nb8sj92","nombre":"Hipoteca","tipo":"Fijo","periodicidad":"mensual","empresa":"CaixaBank","movimientos":[]},{"id":"mqck5nb81pte","nombre":"Préstamo BBVA","tipo":"Fijo","periodicidad":"mensual","empresa":"BBVA","movimientos":[]},{"id":"mqck5nb8f4pt","nombre":"Luz","tipo":"Variable","periodicidad":"mensual","empresa":"Endesa","movimientos":[]},{"id":"mqck5nb9s4ga","nombre":"Agua","tipo":"Variable","periodicidad":"mensual","empresa":"Agbar","movimientos":[]},{"id":"mqck5nb9j463","nombre":"Alarma","tipo":"Variable","periodicidad":"mensual","empresa":"Securitas Direct","movimientos":[]},{"id":"mqck5nb9rz17","nombre":"Internet","tipo":"Fijo","periodicidad":"mensual","empresa":"Movistar","movimientos":[]},{"id":"mqck5nb9q0ys","nombre":"Comunidad","tipo":"Fijo","periodicidad":"mensual","empresa":"Administrador finca","movimientos":[]},{"id":"mqck5nb9ap0d","nombre":"Seguro Hogar","tipo":"Fijo","periodicidad":"mensual","empresa":"Mapfre","movimientos":[]},{"id":"mqck5nb9qvsa","nombre":"Seguros Vida","tipo":"Fijo","periodicidad":"anual","empresa":"Allianz","movimientos":[]},{"id":"mqck5nb9gk2y","nombre":"IBI","tipo":"Fijo","periodicidad":"anual","empresa":"Ajuntament","movimientos":[]},{"id":"mqck5nb9nt0q","nombre":"Basuras","tipo":"Fijo","periodicidad":"semestral","empresa":"Ajuntament","movimientos":[]},{"id":"mr1ugysp3bp9","nombre":"Prestamo Santander","tipo":"Fijo","periodicidad":"mensual","empresa":"Santander","movimientos":[]}],"amortization":{"hipoteca":{"capital":347000,"cuota":1256.71,"tin":2.1,"meses":360,"pagados":0,"fechaInicio":"2026-06-01"},"bbva":{"capital":14000,"cuota":286.01,"tin":8.35,"meses":60,"pagados":0,"fechaInicio":"2026-06-01"},"santander":{"capital":30642.51,"cuota":443.98,"tin":5.75,"meses":84,"pagados":0}}};
 
 /* ====== Estado ====== */
 let state = loadState();
@@ -456,7 +456,24 @@ function ensureLoans(st){
   for(const k in seed){
     if(!st.amortization[k]) st.amortization[k] = clone(seed[k]);
   }
+  fixLoanTerms(st);
   return st;
+}
+/* Corrección única de condiciones de préstamos (solo actúa si aún tienen los valores antiguos) */
+function fixLoanTerms(st){
+  const a = (st && st.amortization) || {};
+  let changed = false;
+  const b = a.bbva, s = a.santander;
+  if(b){
+    if(Number(b.tin) === 5.5){ b.tin = 8.35; changed = true; }
+    if(Number(b.meses) === 120){ b.meses = 60; changed = true; }
+    if(Number(b.cuota) === 279.52){ b.cuota = 286.01; changed = true; }
+  }
+  if(s){
+    if(Number(s.meses) === 85){ s.meses = 84; changed = true; }
+    if(Number(s.cuota) === 439.74){ s.cuota = 443.98; changed = true; }
+  }
+  return changed;
 }
 function persist(){
   try{ localStorage.setItem("anma_gastos_blanco", JSON.stringify(state)); }catch(e){/* no-op */}
@@ -1191,7 +1208,9 @@ function aplicarDatos(data){
   if(!data || !Array.isArray(data.categories)) throw new Error("formato");
   state = data;
   if(!state.amortization) state.amortization = {};
+  const loansFixed = fixLoanTerms(state);
   ensureLoans(state);
+  if(loansFixed) setTimeout(persist, 0);
   openCats.clear(); openMonths.clear(); editingMov.clear(); selectedMonth = null;
   try{ localStorage.setItem("anma_gastos_blanco", JSON.stringify(state)); }catch(e){/* no-op */}
   render();
